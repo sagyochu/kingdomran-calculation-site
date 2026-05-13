@@ -1,0 +1,143 @@
+:root {
+    --bg-dark: #0f0f0f;
+    --player-blue: #1a2a44;
+    --enemy-red: #3a1515;
+    --gold: #B59153;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: white;
+    margin: 0;
+    font-family: sans-serif;
+}
+
+.vs-header {
+    background: #222;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    border-bottom: 2px solid var(--gold);
+}
+
+.back-home {
+    background: #444;
+    color: white;
+    border: 1px solid var(--gold);
+    padding: 5px 15px;
+    cursor: pointer;
+    margin-right: 20px;
+}
+
+/* 対戦エリア */
+.battle-arena {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 20px;
+    gap: 10px;
+}
+
+.army-side {
+    flex: 1;
+    max-width: 450px;
+}
+
+.side-label {
+    text-align: center;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.player-side .side-label { background: #004488; }
+.enemy-side .side-label { background: #880000; }
+
+.busho-card {
+    background: #1a1a1a;
+    border: 1px solid #444;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.slot {
+    width: 100px;
+    height: 100px;
+    border: 2px dashed #555;
+    margin: 0 auto 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+.condition-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    font-size: 0.9rem;
+    background: rgba(0,0,0,0.3);
+    padding: 10px;
+}
+
+.vs-mark {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--gold);
+}
+
+/* 全体設定 */
+.global-settings {
+    margin: 20px auto;
+    max-width: 900px;
+    text-align: center;
+    background: #222;
+    padding: 15px;
+    border: 1px solid var(--gold);
+}
+
+.highlight { color: #ff9800; font-weight: bold; }
+
+/* 結果パネル */
+.result-panel {
+    max-width: 900px;
+    margin: 0 auto 40px;
+    background: #1a1a1a;
+    border: 2px solid var(--gold);
+    padding: 20px;
+}
+
+.result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.result-item {
+    background: #333;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 4px;
+}
+
+.res-label { font-size: 0.8rem; color: #aaa; margin-bottom: 5px; }
+.res-value { font-size: 1.5rem; font-weight: bold; color: var(--gold); }
+
+.highlight-res {
+    background: #443311;
+    border: 1px solid var(--gold);
+}
+
+.highlight-res .res-value {
+    color: #ffcc00;
+}
+
+/* レスポンシブ */
+@media (max-width: 768px) {
+    .battle-arena { flex-direction: column; }
+    .vs-mark { margin: 10px 0; }
+}
