@@ -3,72 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>キングダム乱 数値計算シミュレーター</title>
+    <title>キン乱 数値計算シミュレーター</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="vs-calc.css"> </head>
+    <style>
+        /* 計算機用レイアウト調整 */
+        #capture-area { width: 1150px !important; } /* 援軍を含めた幅を確保 */
+        .army-section { margin-bottom: 40px; }
+        .army-label { padding: 10px; font-weight: bold; text-align: center; border: 1px solid var(--border-gold); margin-bottom: 10px; border-radius: 4px; width: 100%; }
+        .player-label { background: #003366; color: white; }
+        .enemy-label { background: #660000; color: white; }
+        
+        .formation-grid { display: flex; gap: 8px; justify-content: flex-start; }
+        .unit-column { width: 140px; flex-shrink: 0; }
+
+        /* 育成チェックボックス（コンパクトに配置） */
+        .training-settings { 
+            background: rgba(0, 0, 0, 0.5); 
+            border: 1px solid var(--border-gold); 
+            padding: 4px; 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 2px;
+            margin-top: 4px;
+        }
+        .training-label { 
+            display: flex; 
+            align-items: center; 
+            gap: 2px; 
+            font-size: 0.6rem; 
+            cursor: pointer; 
+            color: #ccc;
+            white-space: nowrap;
+        }
+        .training-label input { margin: 0; transform: scale(0.8); }
+
+        /* 特性・結果エリア */
+        .traits-section, .result-section { width: 1100px; margin: 20px auto; }
+        .traits-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+        .trait-box { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 5px 10px; border: 1px solid #444; }
+        .trait-box input { width: 50px; background: #000; border: 1px solid var(--border-gold); color: white; text-align: center; }
+
+        .result-group { margin-bottom: 10px; border: 1px solid var(--border-gold); }
+        .group-toggle { cursor: pointer; padding: 12px; background: #333; display: flex; justify-content: space-between; }
+        .result-content { display: none; padding: 15px; background: rgba(0,0,0,0.6); line-height: 1.6; }
+        .result-content.active { display: block; }
+
+        .calc-btn { background-color: var(--accent-orange) !important; width: 100%; height: 60px; font-size: 1.4rem !important; margin: 20px 0; }
+        .vs-divider { text-align: center; font-size: 2.5rem; color: var(--border-gold); margin: 30px 0; font-weight: bold; text-shadow: 2px 2px 4px #000; }
+    </style>
+</head>
 <body>
 
-    <div id="app-wrapper">
+    <div id="app-wrapper" style="flex-direction: column; align-items: center;">
         <div id="capture-area">
-            <div class="formation-header">
+            <div class="formation-header" style="width: 1100px;">
                 <div class="header-left">
                     <div class="limit-container">
-                        <span class="limit-label">戦場条件</span>
+                        <span class="limit-label">全体条件</span>
                         <select id="global-limit" class="limit-select">
-                            <option value="subjugation">選択なし</option>
+                            <option value="none">選択なし</option>
                             <option value="subjugation">同盟討伐戦</option>
-                            <option value="subjugation">英雄台頭戦</option>
-                            <option value="all-out">連撃戦線</option>
+                            <option value="hero">英雄台頭戦</option>
+                            <option value="chain">連撃戦線</option>
                         </select>
                     </div>
                 </div>
                 <div class="header-right">
-                    <div class="calc-title">数値計算シミュレーター</div>
+                    <div style="color:var(--border-gold); font-weight:bold; font-size:1.4rem; letter-spacing: 2px;">数値計算シミュレーター</div>
                 </div>
             </div>
 
-            <div class="army-label player-label">自軍部隊 (青)</div>
-            <div id="player-unit-container" class="formation-grid">
-                </div>
+            <div class="army-section">
+                <div class="army-label player-label">自軍構成</div>
+                <div id="player-grid" class="formation-grid"></div>
+            </div>
 
             <div class="vs-divider">VS</div>
 
-            <div class="army-label enemy-label">敵軍部隊 (赤)</div>
-            <div id="enemy-unit-container" class="formation-grid">
-                </div>
+            <div class="army-section">
+                <div class="army-label enemy-label">敵軍構成</div>
+                <div id="enemy-grid" class="formation-grid"></div>
+            </div>
 
-            <div id="traits-container" class="traits-section">
-                <h3 class="section-title">武将固有特性入力</h3>
+            <div class="traits-section">
+                <h3 style="color:var(--border-gold); font-size:1rem; border-left: 4px solid var(--border-gold); padding-left: 10px;">武将固有特性入力</h3>
                 <div id="traits-inputs" class="traits-grid">
-                    </div>
-            </div>
-
-            <div class="calc-trigger-area">
-                <button class="ctrl-btn calc-btn" onclick="executeCalculation()">計算実行・反映</button>
-            </div>
-
-            <div id="result-display" class="result-section">
-                <h3 class="section-title">計算結果（バフ・デバフ詳細）</h3>
-                
-                <div class="result-group">
-                    <h4 class="group-toggle player-toggle" onclick="toggleResult('player-res')">▼ 自軍バフ詳細</h4>
-                    <div id="player-res" class="result-content">
-                        </div>
+                    <p style="color:#666; font-size:0.8rem;">武将を選択すると特性入力が表示されます</p>
                 </div>
+            </div>
 
+            <button class="ctrl-btn calc-btn" onclick="calculateAll()">計算実行・反映</button>
+
+            <div class="result-section">
                 <div class="result-group">
-                    <h4 class="group-toggle enemy-toggle" onclick="toggleResult('enemy-res')">▼ 敵軍デバフ詳細</h4>
-                    <div id="enemy-res" class="result-content">
-                        </div>
+                    <div class="group-toggle" onclick="toggleAccordion('player-res')">
+                        <span style="color: #6299FF; font-weight: bold;">▼ 自軍バフ詳細</span>
+                        <span id="p-res-summary">---</span>
+                    </div>
+                    <div id="player-res" class="result-content"></div>
+                </div>
+                <div class="result-group">
+                    <div class="group-toggle" onclick="toggleAccordion('enemy-res')">
+                        <span style="color: #ff4d4d; font-weight: bold;">▼ 敵軍デバフ詳細</span>
+                        <span id="e-res-summary">---</span>
+                    </div>
+                    <div id="enemy-res" class="result-content"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="modal" class="modal">...</div>
-    <div id="menu-modal" class="menu-modal">...</div>
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span style="color:var(--border-gold); font-weight:bold;">武将選択</span>
+                <button class="close-btn" onclick="closePopup()">&times;</button>
+            </div>
+            <div class="search-container">
+                <input type="text" id="busho-search" class="search-box" placeholder="武将名で検索..." oninput="filterBushos()">
+            </div>
+            <div id="filter-tabs" style="display:flex; gap:2px; margin-bottom:10px;">
+                <button class="tab-btn active" id="tab-country" onclick="switchTab('country')" style="flex:1; padding:8px;">国別</button>
+                <button class="tab-btn" id="tab-belongs" onclick="switchTab('belongs')" style="flex:1; padding:8px;">所属別</button>
+            </div>
+            <div id="modal-body" class="scroll-area"></div>
+        </div>
+    </div>
+
+    <div id="menu-overlay" class="menu-modal-overlay" onclick="closeMenu()"></div>
+    <div id="menu-modal" class="menu-modal">
+        <div id="menu-name" class="menu-title">武将名</div>
+        <button class="menu-button" onclick="handleMenuSelection('change-busho')">武将変更</button>
+        <button class="menu-button delete" onclick="handleMenuSelection('delete-img')">削除</button>
+        <button class="menu-button cancel" onclick="closeMenu()">キャンセル</button>
+    </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="bushos-data.js"></script>
-    <script src="bushos-skills.js"></script> <script src="vs-script.js"></script> </body>
+    <script src="script.js"></script>
+</body>
 </html>
