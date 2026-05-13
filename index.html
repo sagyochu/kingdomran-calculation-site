@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数値計算シミュレーター | キングダム乱</title>
+    <link rel="stylesheet" href="vs-style.css">
+</head>
+<body>
+
+<header class="vs-header">
+    <button onclick="location.href='index.html'" class="back-home">◀ ポータルへ</button>
+    <h1>VS 数値計算シミュレーター</h1>
+</header>
+
+<main class="vs-main">
+    <div class="battle-arena">
+        <section class="army-side player-side">
+            <h2 class="side-label">自軍部隊</h2>
+            <div class="busho-card" id="player-card">
+                <div class="slot select-slot" onclick="openBushoSelector('player')">
+                    <div class="plus-mark">+</div>
+                    <p>武将を選択</p>
+                </div>
+                <div class="condition-group">
+                    <label><input type="checkbox" class="calc-trigger"> 技極</label>
+                    <label><input type="checkbox" class="calc-trigger"> 裏技極</label>
+                    <label><input type="checkbox" class="calc-trigger"> LG覚醒2</label>
+                    <label><input type="checkbox" class="calc-trigger"> 宿命</label>
+                </div>
+            </div>
+        </section>
+
+        <div class="vs-mark">VS</div>
+
+        <section class="army-side enemy-side">
+            <h2 class="side-label">敵軍部隊</h2>
+            <div class="busho-card" id="enemy-card">
+                <div class="slot select-slot" onclick="openBushoSelector('enemy')">
+                    <div class="plus-mark">+</div>
+                    <p>武将を選択</p>
+                </div>
+                <div class="condition-group">
+                    <label><input type="checkbox" class="calc-trigger"> 技極</label>
+                    <label><input type="checkbox" class="calc-trigger"> 裏技極</label>
+                    <label><input type="checkbox" class="calc-trigger"> LG覚醒2</label>
+                    <label><input type="checkbox" class="calc-trigger"> 宿命</label>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <section class="global-settings">
+        <div class="setting-item">
+            <label>
+                <input type="checkbox" id="is-subjugation" class="calc-trigger"> 
+                <span class="highlight">同盟討伐戦時限定バフを有効化</span>
+            </label>
+        </div>
+    </section>
+
+    <section class="result-panel">
+        <h3>計算結果（推定値）</h3>
+        <div class="result-grid">
+            <div class="result-item">
+                <span class="res-label">攻撃力倍率</span>
+                <span class="res-value" id="res-atk">100%</span>
+            </div>
+            <div class="result-item">
+                <span class="res-label">防御力倍率</span>
+                <span class="res-value" id="res-def">100%</span>
+            </div>
+            <div class="result-item highlight-res">
+                <span class="res-label">対敵軍ダメージ期待値</span>
+                <span class="res-value" id="res-damage">---</span>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <header>武将選択 <span class="close" onclick="closeModal()">&times;</span></header>
+        <div id="modal-body"></div>
+    </div>
+</div>
+
+<script src="bushos-data.js"></script>
+<script src="vs-logic.js"></script>
+</body>
+</html>
