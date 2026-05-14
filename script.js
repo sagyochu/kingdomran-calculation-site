@@ -1,5 +1,5 @@
 /**
- * script.js - キン乱計算シミュレーター 修正・機能復旧版
+ * script.js - キン乱計算シミュレーター
  */
 
 const units = [
@@ -19,6 +19,31 @@ const trainingItems = [
     { id: "ex", label: "EX6" }
 ];
 
+// 所属マップ (提供されたデータを整理)
+const belongsMap = {
+    "フィゴ族": ["ダント", "パム"],
+    "メラ族": ["カタリ", "キタリ"],
+    "中華十弓": ["白麗", "蒼源", "魏加", "黄離弦", "姜燕"],
+    "亜光軍": ["亜光", "英紀"],
+    "合従軍": ["春申君", "汗明", "項翼", "白麗", "臨武君", "バミュウ", "媧燐", "媧偃", "仁凹", "貝満", "剛摩諸", "魯近", "豪徳", "巨暴", "オルド", "ユキイ", "オタジ", "李牧", "龐煖", "カイネ", "万極", "李白", "公孫龍", "傅抵", "晋成常", "慶舎", "成恢", "奈棍", "張印", "呉鳳明"],
+    "呂氏四柱": ["蒙武", "昌平君", "李斯", "蔡沢"],
+    "媧燐軍": ["項翼", "白麗", "バミュウ", "媧燐", "媧偃", "豪徳"],
+    "廉頗四天王": ["輪虎", "介子坊", "玄峰", "姜燕"],
+    "廉頗軍": ["廉頗", "輪虎", "介子坊", "玄峰", "姜燕"],
+    "成恢軍": ["成恢", "奈棍"],
+    "桓騎軍": ["桓騎", "黒桜", "雷土", "摩論", "オギコ", "ゼノウ", "リン玉", "那貴", "馬印", "角雲", "呂敏"],
+    "楽華隊": ["蒙恬", "陸仙", "蒙恬のじィ"],
+    "汗明軍": ["汗明", "仁凹", "貝満", "剛摩諸", "巨暴"],
+    "玉鳳隊": ["王賁", "番陽", "関常", "宮康", "松琢"],
+    "王翦軍": ["王翦", "関常", "宮康", "松琢", "田里弥", "亜光", "麻鉱", "英紀"],
+    "王騎軍": ["王騎", "騰", "録嗚未", "鱗坊", "同金", "干央", "隆国"],
+    "秦の六大将軍": ["王騎", "白起", "王齕", "司馬錯", "胡傷", "摎"],
+    "紀彗軍": ["紀彗", "馬呈", "劉冬", "紀昌", "青公"],
+    "羌族": ["羌瘣", "羌象", "羌明"],
+    "飛信隊": ["信", "河了貂", "尾平", "尾到", "澤圭", "羌瘣", "渕", "楚水", "田有", "沛浪", "松左", "竜川", "田永", "崇原", "石", "去亥", "魯延", "昂", "慶", "我呂", "中鉄", "竜有", "岳雷", "那貴", "呂敏", "有義"],
+    "魏火龍": ["呉慶", "凱孟", "霊凰", "紫伯", "太呂慈"]
+};
+
 let state = {
     player: { slots: {}, training: {}, syukuen: {} },
     enemy: { slots: {}, training: {}, syukuen: {} }
@@ -28,6 +53,18 @@ let currentSlotId = "";
 let currentTab = "country";
 
 $(document).ready(() => {
+    // 起動時に所属情報を注入
+    if (window.bushosData) {
+        window.bushosData.forEach(busho => {
+            busho.belongs = [];
+            for (const [groupName, members] of Object.entries(belongsMap)) {
+                if (members.includes(busho.name)) {
+                    busho.belongs.push(groupName);
+                }
+            }
+        });
+    }
+    
     renderGrid('player-grid', 'p');
     renderGrid('enemy-grid', 'e');
 });
@@ -37,7 +74,7 @@ function renderGrid(containerId, prefix) {
     units.forEach(unit => {
         const col = document.createElement('div');
         col.className = 'unit-column';
-        col.innerHTML = `<div style="text-align:center;font-size:0.8rem;background:#333;color:#b59153;padding:4px;">${unit.name}</div>`;
+        col.innerHTML = `<div style="text-align:center;font-size:0.8rem;background:#333;color:#b59153;padding:4px;border-radius:2px;">${unit.name}</div>`;
 
         for (let i = 0; i < unit.rows; i++) {
             const slotId = `${prefix}-${unit.name}-${i}`;
@@ -72,6 +109,10 @@ function renderGrid(containerId, prefix) {
         container.appendChild(col);
     });
 }
+
+// ---------------------------------------------------------
+// モーダル・検索・タブ処理
+// ---------------------------------------------------------
 
 function onSlotClick(slotId) {
     currentSlotId = slotId;
@@ -108,9 +149,13 @@ function switchTab(tab) {
 function renderCategoryList(type) {
     const body = document.getElementById('modal-body');
     body.innerHTML = '';
-    const categories = (type === 'country') 
-        ? ["秦国", "趙国", "魏国", "楚国", "韓国", "斉国", "燕国", "山の民", "毐国"]
-        : ["飛信隊", "玉鳳隊", "楽華隊", "王騎軍", "麃公軍", "桓騎軍", "王翦軍", "呂氏陣営", "山の民"];
+    
+    let categories = [];
+    if (type === 'country') {
+        categories = ["秦国", "趙国", "魏国", "楚国", "韓国", "斉国", "燕国", "山の民", "毐国"];
+    } else {
+        categories = Object.keys(belongsMap); // 所属リストから自動生成
+    }
 
     categories.forEach(cat => {
         const btn = document.createElement('button');
@@ -127,7 +172,13 @@ function renderBushoList(type, value) {
     body.innerHTML = `<button onclick="renderCategoryList('${type}')" style="width:100%;padding:10px;background:#555;color:#fff;margin-bottom:10px;border:none;cursor:pointer;">← 戻る (${value})</button>`;
     
     if (!window.bushosData) return;
-    const list = window.bushosData.filter(b => b[type] === value);
+
+    // フィルタリング: 国別の場合は完全一致、所属別の場合は配列内に含まれるか
+    const list = window.bushosData.filter(b => {
+        if (type === 'country') return b.country === value;
+        return b.belongs && b.belongs.includes(value);
+    });
+
     list.forEach(b => {
         const btn = document.createElement('button');
         btn.className = 'tab-btn';
@@ -153,6 +204,10 @@ function onSearchInput() {
     });
 }
 
+// ---------------------------------------------------------
+// 武将選択・宿縁入力・計算処理
+// ---------------------------------------------------------
+
 function selectBusho(busho) {
     const side = currentSlotId.startsWith('p') ? 'player' : 'enemy';
     const parts = currentSlotId.split('-');
@@ -167,7 +222,6 @@ function updateExtraInputs(prefix, unitName) {
     const target = document.getElementById(`extra-${prefix}-${unitName}`);
     if (!target) return;
     
-    // 宿縁1と宿縁2（または宿運）の2つの計算枠を作成
     let html = '';
     [1, 2].forEach(i => {
         html += `
@@ -182,7 +236,6 @@ function updateExtraInputs(prefix, unitName) {
     target.innerHTML = html;
 }
 
-// 負の値ガード
 function v(input) { if(input.value < 0) input.value = 0; }
 
 function updateS(prefix, unitName, frameId, type, val) {
@@ -211,4 +264,8 @@ function handleMenuSelection(action) {
     }
 }
 
-function calculateAll() { alert("計算を実行しました。"); }
+function calculateAll() {
+    const limit = $('#global-limit').val();
+    console.log("計算実行: 条件=" + limit, state);
+    alert("計算を実行しました（詳細はブラウザのコンソールを参照）。");
+}
