@@ -1,3 +1,7 @@
+/**
+ * script.js - キン乱計算シミュレーター
+ */
+
 const units = [
     { name: "総大将", type: "soudaisho", rows: 2 },
     { name: "第1軍", type: "army", rows: 2 },
@@ -17,13 +21,13 @@ const trainingItems = [
 
 let state = {
     player: { slots: {}, training: {}, syukuen: {} },
-    enemy: { slots: {}, training: {} } // 敵軍からsyukuenを削除
+    enemy: { slots: {}, training: {} }
 };
 
 let currentSlotId = "";
 let currentTab = "country";
 let belongsCategories = [];
-let lastCategory = ""; // 戻るボタン用
+let lastCategory = "";
 
 document.addEventListener("DOMContentLoaded", function() {
     initApp();
@@ -43,7 +47,7 @@ function initApp() {
 }
 
 function setupGlobalEvents() {
-    document.getElementById('main-calc-btn').addEventListener('click', () => alert("計算中..."));
+    document.getElementById('main-calc-btn').addEventListener('click', calculateAll);
     document.getElementById('close-modal-btn').addEventListener('click', () => $('#modal').hide());
     document.getElementById('busho-search').addEventListener('input', onSearchInput);
     document.getElementById('btn-tab-country').addEventListener('click', () => switchTab('country'));
@@ -83,13 +87,46 @@ function renderGrid(containerId, prefix) {
             col.appendChild(trainDiv);
         }
 
-        // 味方軍(p)かつ軍師以外のみ宿縁枠を表示
         if (prefix === 'p' && unit.type !== 'gunshi') {
             const extra = document.createElement('div');
             extra.className = 'extra-input-area';
             extra.id = `extra-${prefix}-${unit.name}`;
             col.appendChild(extra);
         }
+
+        // 計算結果枠の追加
+        const resBox = document.createElement('div');
+        resBox.className = 'result-box';
+        resBox.id = `res-box-${prefix}-${unit.name}`;
+        
+        const resHead = document.createElement('div');
+        resHead.className = 'res-header';
+        resHead.innerText = '▽ バフデバフ計算結果';
+        
+        const resCont = document.createElement('div');
+        resCont.className = 'res-content';
+        resCont.id = `res-cont-${prefix}-${unit.name}`;
+        
+        // 軍師かそれ以外かで初期表示項目を変える
+        if (unit.type === 'gunshi') {
+            resCont.innerHTML = `
+                <div class="res-line">計略威力増加 <span class="res-val">0%</span></div>
+                <div class="res-line">計略時間延長 <span class="res-val">0%</span></div>
+                <div class="res-line">軍師スキル発動率 <span class="res-val">0%</span></div>
+            `;
+        } else {
+            resCont.innerHTML = `
+                <div class="res-line">攻撃力上昇 <span class="res-val">0%</span></div>
+                <div class="res-line">防御力上昇 <span class="res-val">0%</span></div>
+                <div class="res-line">移動速度上昇 <span class="res-val">0%</span></div>
+            `;
+        }
+
+        resHead.addEventListener('click', () => resCont.classList.toggle('active'));
+        resBox.appendChild(resHead);
+        resBox.appendChild(resCont);
+        col.appendChild(resBox);
+
         container.appendChild(col);
     });
 }
@@ -137,7 +174,7 @@ function renderBushoList(type, val) {
     const body = document.getElementById('modal-body');
     body.innerHTML = '';
     const back = document.createElement('button');
-    back.style = "width:100%;padding:10px;margin-bottom:10px;background:#444;color:#fff;border:none;";
+    back.style = "width:100%;padding:10px;margin-bottom:10px;background:#444;color:#fff;border:none;cursor:pointer;";
     back.innerText = `← 戻る (${val})`;
     back.onclick = () => renderCategoryList(type);
     body.appendChild(back);
@@ -156,7 +193,6 @@ function renderBushoList(type, val) {
     });
 }
 
-// 画像選択画面を表示（抜粋コードを統合・修正）
 function renderImageList(busho, originType) {
     $('#modal-search-area').hide();
     $('#modal-title-text').text(`${busho.name} - 画像選択`);
@@ -174,9 +210,7 @@ function renderImageList(busho, originType) {
 
     const grid = document.createElement('div');
     grid.className = 'image-grid';
-    
     const imageList = busho.imgs && busho.imgs.length > 0 ? busho.imgs : ["images/default.jpg"];
-    
     imageList.forEach(src => {
         const img = document.createElement('img');
         img.src = src;
@@ -190,10 +224,7 @@ function renderImageList(busho, originType) {
 function selectBusho(b, selectedImg) {
     const side = currentSlotId.startsWith('p') ? 'player' : 'enemy';
     state[side].slots[currentSlotId] = { name: b.name, img: selectedImg };
-    
-    const slot = document.getElementById(currentSlotId);
-    slot.innerHTML = `<img src="${selectedImg}">`;
-    
+    document.getElementById(currentSlotId).innerHTML = `<img src="${selectedImg}">`;
     const parts = currentSlotId.split('-');
     if (parts[0] === 'p' && parts[2] === "0") updateExtraInputs(parts[0], parts[1]);
     $('#modal').hide();
@@ -209,8 +240,7 @@ function updateExtraInputs(pre, uName) {
         group.innerHTML = `<div class="syu-title">宿縁/宿運枠 ${i}</div>`;
         [['所持','c'],['R極','r'],['技極','g']].forEach(f => {
             const row = document.createElement('div');
-            row.className = 'syu-row';
-            row.append(f[0]);
+            row.className = 'syu-row'; row.append(f[0]);
             const inp = document.createElement('input');
             inp.type = 'number'; inp.min = '0'; inp.value = '0';
             inp.addEventListener('input', (e) => {
@@ -259,4 +289,9 @@ function updateT(pre, sid, tid, val) {
     const side = pre === 'p' ? 'player' : 'enemy';
     if (!state[side].training[sid]) state[side].training[sid] = {};
     state[side].training[sid][tid] = val;
+}
+
+function calculateAll() {
+    alert("バフデバフ計算を実行しました。");
+    // ここでstateを元に各res-contの数値を書き換えるロジックを今後実装可能です
 }
