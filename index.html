@@ -2,99 +2,125 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>キングダム乱 数値計算シミュレーター</title>
     <style>
-        :root { --border-gold: #b59153; --bg-dark: #000; }
-        body { background-color: #333; color: white; font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif; margin: 0; }
+        :root { --gold: #b59153; --bg: #000; }
+        body { background-color: #222; color: white; font-family: sans-serif; margin: 0; padding: 20px; }
         
-        #capture-area { width: 1150px; margin: 20px auto; padding: 15px; background: var(--bg-dark); border: 2px solid var(--border-gold); box-sizing: border-box; }
+        /* メインコンテナ：はみ出し防止 */
+        #capture-area { 
+            width: 1150px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background: var(--bg); 
+            border: 2px solid var(--gold); 
+            box-sizing: border-box; 
+        }
         
-        /* ヘッダー */
         .formation-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .limit-container { display: flex; border: 1px solid var(--border-gold); border-radius: 4px; overflow: hidden; }
-        .limit-label { background: var(--border-gold); color: #000; padding: 5px 12px; font-weight: bold; font-size: 0.9rem; }
+        .limit-container { display: flex; border: 1px solid var(--gold); border-radius: 4px; overflow: hidden; }
+        .limit-label { background: var(--gold); color: #000; padding: 5px 12px; font-weight: bold; font-size: 0.9rem; }
         .limit-select { background: #000; color: #fff; border: none; padding: 5px; cursor: pointer; outline: none; }
 
-        /* グリッドレイアウト */
-        .formation-grid { display: flex; gap: 10px; justify-content: center; width: 100%; min-height: 200px; }
+        /* 軍構成グリッド：ここが表示されない対策としてmin-heightを設定 */
+        .formation-grid { 
+            display: flex; 
+            gap: 10px; 
+            justify-content: center; 
+            width: 100%; 
+            min-height: 400px; /* 描画前でも高さを確保 */
+            margin-bottom: 20px;
+        }
         .unit-column { width: 150px; flex-shrink: 0; display: flex; flex-direction: column; gap: 5px; }
         
-        /* スロット */
-        .slot { width: 140px; height: 140px; background: #222; border: 1px solid #444; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; margin: 0 auto; position: relative; }
+        .slot { width: 140px; height: 140px; background: #111; border: 1px solid #444; display: flex; align-items: center; justify-content: center; cursor: pointer; margin: 0 auto; }
         .slot img { width: 100%; height: 100%; object-fit: cover; }
-        .plus-mark { font-size: 2rem; color: #444; }
+        
+        .training-settings { background: rgba(255,255,255,0.05); border: 1px solid var(--gold); padding: 4px; display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+        .training-label { font-size: 0.6rem; color: #ccc; display: flex; align-items: center; gap: 2px; }
+        .training-label input { transform: scale(0.8); margin: 0; }
 
-        /* 育成・宿縁 */
-        .training-settings { background: rgba(0, 0, 0, 0.5); border: 1px solid var(--border-gold); padding: 4px; display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin-top: 4px; }
-        .training-label { display: flex; align-items: center; gap: 2px; font-size: 0.6rem; color: #ccc; cursor: pointer; white-space: nowrap; }
-        .training-label input { margin: 0; transform: scale(0.8); }
+        .extra-input-area { background: #111; padding: 5px; border: 1px solid #333; margin-top: 5px; min-height: 140px; }
+        .syu-group { border: 1px solid #444; padding: 4px; margin-bottom: 5px; }
+        .syu-title { color: var(--gold); font-size: 0.6rem; text-align: center; margin-bottom: 3px; background: #222; }
+        .syu-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.6rem; color: #999; margin-bottom: 2px; }
+        .syu-row input { width: 35px; background: #000; border: 1px solid var(--gold); color: white; text-align: center; }
 
-        .extra-input-area { background: #1a1a1a; padding: 5px; border: 1px solid #444; margin-top: 5px; min-height: 100px; }
-        .syu-group { border: 1px solid #333; padding: 3px; margin-bottom: 5px; }
-        .syu-title { color: var(--border-gold); font-size: 0.6rem; text-align: center; margin-bottom: 2px; background: #222; padding: 2px 0; }
-        .syu-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.6rem; color: #aaa; margin-bottom: 2px; }
-        .syu-row input { width: 35px; background: #000; border: 1px solid var(--border-gold); color: white; text-align: center; font-size: 0.7rem; }
+        .unit-result-area { border: 1px solid var(--gold); margin-top: 5px; background: #050505; }
+        .res-toggle { background: #333; color: var(--gold); font-size: 0.7rem; padding: 5px; cursor: pointer; text-align: center; }
+        .res-body { display: none; padding: 5px; font-size: 0.7rem; }
 
-        /* 結果表示 */
-        .unit-result-area { border: 1px solid var(--border-gold); margin-top: 5px; background: #0d0d0d; }
-        .res-toggle { background: #333; color: var(--border-gold); font-size: 0.75rem; padding: 4px; cursor: pointer; text-align: center; }
-        .res-body { display: none; padding: 8px; font-size: 0.75rem; border-top: 1px solid #444; }
-        .res-body.active { display: block; }
+        /* 計算ボタンを適切なサイズに修正 */
+        .calc-btn-container { text-align: center; margin-top: 20px; }
+        .calc-btn { 
+            background: linear-gradient(to bottom, #d48806, #a06600); 
+            color: white; 
+            padding: 12px 40px; 
+            font-size: 1.1rem; 
+            border: 1px solid var(--gold); 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-weight: bold;
+            box-shadow: 0 4px 0 #704a00;
+        }
+        .calc-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #704a00; }
 
         /* モーダル */
         .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); }
-        .tab-btn { flex: 1; padding: 10px; background: #333; color: #fff; border: 1px solid #555; cursor: pointer; font-size: 0.9rem; }
-        .tab-btn.active { background: var(--border-gold); color: #000; font-weight: bold; }
-        
-        .calc-btn { background-color: #d48806; width: 1150px; height: 60px; font-size: 1.4rem; margin: 20px auto; border: none; color: white; cursor: pointer; font-weight: bold; display: block; }
+        .tab-btn { flex: 1; padding: 10px; background: #333; color: #fff; border: 1px solid #555; cursor: pointer; }
+        .tab-btn.active { background: var(--gold); color: #000; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="capture-area">
         <div class="formation-header">
-            <div class="header-left">
-                <div class="limit-container">
-                    <span class="limit-label">全体条件</span>
-                    <select id="global-limit" class="limit-select">
-                        <option value="none">選択なし</option>
-                        <option value="subjugation">同盟討伐戦</option>
-                        <option value="hero">英雄台頭戦</option>
-                        <option value="chain">連撃戦線</option>
-                    </select>
-                </div>
+            <div class="limit-container">
+                <span class="limit-label">全体条件</span>
+                <select id="global-limit" class="limit-select">
+                    <option value="none">選択なし</option>
+                    <option value="subjugation">同盟討伐戦</option>
+                    <option value="hero">英雄台頭戦</option>
+                    <option value="chain">連撃戦線</option>
+                </select>
             </div>
-            <div style="color:var(--border-gold); font-weight:bold; font-size:1.4rem;">数値計算シミュレーター</div>
+            <div style="color:var(--gold); font-weight:bold; font-size:1.4rem;">数値計算シミュレーター</div>
         </div>
 
-        <div id="player-grid" class="formation-grid"></div>
-        <div style="text-align: center; color: var(--border-gold); font-size: 2rem; font-weight: bold; margin: 15px 0;">VS</div>
-        <div id="enemy-grid" class="formation-grid"></div>
+        <div id="player-grid" class="formation-grid">
+            </div>
 
-        <button class="calc-btn" onclick="calculateAll()">全部隊の計算を実行</button>
+        <div style="text-align: center; color: var(--gold); font-size: 1.8rem; font-weight: bold; margin: 10px 0;">VS</div>
+
+        <div id="enemy-grid" class="formation-grid">
+            </div>
+
+        <div class="calc-btn-container">
+            <button class="calc-btn" onclick="calculateAll()">全部隊の計算を実行</button>
+        </div>
     </div>
 
     <div id="modal" class="modal">
-        <div style="background:#222; margin: 2% auto; padding: 20px; border: 1px solid var(--border-gold); width: 90%; max-width: 700px; height: 90vh; display: flex; flex-direction: column;">
+        <div style="background:#222; margin: 2% auto; padding: 20px; border: 1px solid var(--gold); width: 90%; max-width: 600px; height: 85vh; display: flex; flex-direction: column;">
             <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                <span style="color:var(--border-gold); font-weight:bold;">武将選択</span>
+                <span style="color:var(--gold); font-weight:bold;">武将選択</span>
                 <button onclick="closePopup()" style="background:none; border:none; color:#fff; font-size:1.5rem; cursor:pointer;">&times;</button>
             </div>
-            <input type="text" id="busho-search" placeholder="武将名で検索..." oninput="onSearchInput()" style="width:100%; padding:10px; background:#000; border:1px solid var(--border-gold); color:#fff; margin-bottom:10px; box-sizing: border-box;">
+            <input type="text" id="busho-search" placeholder="武将名で検索..." oninput="onSearchInput()" style="width:100%; padding:10px; background:#000; border:1px solid var(--gold); color:#fff; margin-bottom:10px; box-sizing:border-box;">
             <div style="display:flex; gap:5px; margin-bottom:10px;">
                 <button id="btn-tab-country" class="tab-btn active" onclick="switchTab('country')">国別</button>
                 <button id="btn-tab-belongs" class="tab-btn" onclick="switchTab('belongs')">所属別</button>
             </div>
-            <div id="modal-body" style="flex:1; overflow-y:auto; border-top: 1px solid #444; padding-top: 10px;"></div>
+            <div id="modal-body" style="flex:1; overflow-y:auto; border-top: 1px solid #444;"></div>
         </div>
     </div>
 
     <div id="menu-overlay" onclick="closeMenu()" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10000;"></div>
-    <div id="menu-modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#2a2a2a; border:2px solid var(--border-gold); padding:20px; z-index:10001; width:250px; text-align:center;">
-        <div id="menu-name" style="color:var(--border-gold); font-weight:bold; margin-bottom:15px;"></div>
-        <button onclick="handleMenuSelection('change-busho')" style="width:100%; padding:10px; margin-bottom:5px; background:#444; color:#fff; border:none; cursor:pointer;">武将変更</button>
-        <button onclick="handleMenuSelection('delete-img')" style="width:100%; padding:10px; background:#800; color:#fff; border:none; cursor:pointer;">削除</button>
+    <div id="menu-modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#2a2a2a; border:2px solid var(--gold); padding:20px; z-index:10001; width:250px; text-align:center;">
+        <div id="menu-name" style="color:var(--gold); font-weight:bold; margin-bottom:15px;"></div>
+        <button onclick="handleMenuSelection('change-busho')" style="width:100%; padding:10px; margin-bottom:5px; background:#444; color:#fff; border:none;">武将変更</button>
+        <button onclick="handleMenuSelection('delete-img')" style="width:100%; padding:10px; background:#800; color:#fff; border:none;">削除</button>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
