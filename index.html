@@ -7,6 +7,13 @@
     <link rel="stylesheet" href="style.css">
     <style>
         #capture-area { width: 1150px; margin: 0 auto; padding: 15px; background: #000; border: 2px solid #b59153; box-sizing: border-box; }
+        
+        /* 全体条件ヘッダー */
+        .formation-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; width: 100%; }
+        .limit-container { display: flex; border: 1px solid #b59153; overflow: hidden; border-radius: 4px; }
+        .limit-label { background: #b59153; color: #000; padding: 5px 12px; font-weight: bold; font-size: 0.9rem; }
+        .limit-select { background: #000; color: #fff; border: none; padding: 5px; outline: none; cursor: pointer; }
+
         .formation-grid { display: flex; gap: 10px; justify-content: center; width: 100%; }
         .unit-column { width: 150px; flex-shrink: 0; display: flex; flex-direction: column; gap: 5px; }
         .slot { width: 140px; height: 140px; background: #222; border: 1px solid #444; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; margin: 0 auto; }
@@ -17,9 +24,9 @@
         .training-label input { margin: 0; transform: scale(0.8); }
 
         /* 宿縁・宿運 2枠化 */
-        .extra-input-area { background: #1a1a1a; padding: 5px; border: 1px solid #444; margin-top: 5px; }
+        .extra-input-area { background: #1a1a1a; padding: 5px; border: 1px solid #444; margin-top: 5px; min-height: 120px; }
         .syu-group { border: 1px solid #333; padding: 3px; margin-bottom: 5px; border-radius: 3px; }
-        .syu-title { color: #b59153; font-size: 0.6rem; text-align: center; margin-bottom: 2px; background: #222; }
+        .syu-title { color: #b59153; font-size: 0.6rem; text-align: center; margin-bottom: 2px; background: #222; padding: 2px 0; }
         .syu-row { display: flex; justify-content: space-between; margin-bottom: 2px; align-items: center; font-size: 0.6rem; color: #aaa; }
         .syu-row input { width: 35px; background: #000; border: 1px solid #b59153; color: white; text-align: center; font-size: 0.7rem; }
 
@@ -28,6 +35,7 @@
         .res-body { display: none; padding: 8px; font-size: 0.75rem; border-top: 1px solid #444; }
         .res-body.active { display: block; }
 
+        /* モーダル */
         .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); }
         .tab-btn { flex: 1; padding: 10px; background: #333; color: #fff; border: 1px solid #555; cursor: pointer; }
         .tab-btn.active { background: #b59153; color: #000; font-weight: bold; }
@@ -38,9 +46,27 @@
 
     <div id="app-wrapper" style="display: flex; flex-direction: column; align-items: center; padding: 20px;">
         <div id="capture-area">
+            <div class="formation-header">
+                <div class="header-left">
+                    <div class="limit-container">
+                        <span class="limit-label">全体条件</span>
+                        <select id="global-limit" class="limit-select">
+                            <option value="none">選択なし</option>
+                            <option value="subjugation">同盟討伐戦</option>
+                            <option value="hero">英雄台頭戦</option>
+                            <option value="chain">連撃戦線</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div style="color:#b59153; font-weight:bold; font-size:1.4rem; letter-spacing: 2px;">数値計算シミュレーター</div>
+                </div>
+            </div>
+
             <div id="player-grid" class="formation-grid" style="margin-bottom: 20px;"></div>
             <div style="text-align: center; color: #b59153; font-size: 2rem; font-weight: bold; margin: 15px 0;">VS</div>
             <div id="enemy-grid" class="formation-grid"></div>
+
             <button class="calc-btn" onclick="calculateAll()">全部隊の計算を実行</button>
         </div>
     </div>
