@@ -6,57 +6,46 @@
     <title>キングダム乱 数値計算シミュレーター</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* 計算機用レイアウト調整 */
-        #capture-area { width: 1150px !important; } /* 援軍を含めた幅を確保 */
+        /* レイアウト調整 */
+        #capture-area { width: 1150px !important; padding: 20px; background: #000; }
         .army-section { margin-bottom: 40px; }
         .army-label { padding: 10px; font-weight: bold; text-align: center; border: 1px solid var(--border-gold); margin-bottom: 10px; border-radius: 4px; width: 100%; }
         .player-label { background: #003366; color: white; }
         .enemy-label { background: #660000; color: white; }
         
         .formation-grid { display: flex; gap: 8px; justify-content: flex-start; }
-        .unit-column { width: 140px; flex-shrink: 0; }
+        .unit-column { width: 155px; flex-shrink: 0; display: flex; flex-direction: column; gap: 5px; }
 
-        /* 育成チェックボックス（コンパクトに配置） */
+        /* スロット・育成エリア */
+        .slot-wrapper { background: rgba(255,255,255,0.05); padding: 5px; border: 1px solid #333; }
         .training-settings { 
-            background: rgba(0, 0, 0, 0.5); 
-            border: 1px solid var(--border-gold); 
-            padding: 4px; 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 2px;
-            margin-top: 4px;
+            background: rgba(0, 0, 0, 0.5); border: 1px solid var(--border-gold); 
+            padding: 4px; display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin-top: 4px;
         }
-        .training-label { 
-            display: flex; 
-            align-items: center; 
-            gap: 2px; 
-            font-size: 0.6rem; 
-            cursor: pointer; 
-            color: #ccc;
-            white-space: nowrap;
-        }
+        .training-label { display: flex; align-items: center; gap: 2px; font-size: 0.6rem; color: #ccc; cursor: pointer; }
         .training-label input { margin: 0; transform: scale(0.8); }
 
-        /* 特性・結果エリア */
-        .traits-section, .result-section { width: 1100px; margin: 20px auto; }
-        .traits-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
-        .trait-box { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 5px 10px; border: 1px solid #444; }
-        .trait-box input { width: 50px; background: #000; border: 1px solid var(--border-gold); color: white; text-align: center; }
+        /* 新設：宿縁・部隊バフエリア */
+        .extra-input-area { background: #1a1a1a; padding: 5px; border: 1px solid #444; margin-top: 5px; }
+        .syu-row { display: flex; justify-content: space-between; margin-bottom: 2px; align-items: center; font-size: 0.65rem; color: #aaa; }
+        .syu-row input { width: 40px; background: #000; border: 1px solid var(--border-gold); color: white; text-align: center; font-size: 0.7rem; }
 
-        .result-group { margin-bottom: 10px; border: 1px solid var(--border-gold); }
-        .group-toggle { cursor: pointer; padding: 12px; background: #333; display: flex; justify-content: space-between; }
-        .result-content { display: none; padding: 15px; background: rgba(0,0,0,0.6); line-height: 1.6; }
-        .result-content.active { display: block; }
+        .unit-result-area { border: 1px solid var(--border-gold); margin-top: 5px; background: #0d0d0d; }
+        .res-toggle { background: #333; color: var(--border-gold); font-size: 0.75rem; padding: 4px; cursor: pointer; text-align: center; }
+        .res-body { display: none; padding: 8px; font-size: 0.75rem; border-top: 1px solid #444; }
+        .res-body.active { display: block; }
+        .res-item { display: flex; justify-content: space-between; margin-bottom: 2px; }
+        .res-val { color: #00ff00; font-weight: bold; }
 
-        .calc-btn { background-color: var(--accent-orange) !important; width: 100%; height: 60px; font-size: 1.4rem !important; margin: 20px 0; }
-        .vs-divider { text-align: center; font-size: 2.5rem; color: var(--border-gold); margin: 30px 0; font-weight: bold; text-shadow: 2px 2px 4px #000; }
+        .calc-btn { background-color: var(--accent-orange) !important; width: 1150px; height: 60px; font-size: 1.4rem !important; margin: 20px 0; border: none; color: white; cursor: pointer; }
+        .vs-divider { text-align: center; font-size: 2.5rem; color: var(--border-gold); margin: 30px 0; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="app-wrapper" style="flex-direction: column; align-items: center;">
         <div id="capture-area">
-            <div class="formation-header" style="width: 1100px;">
+            <div class="formation-header" style="width: 1110px; margin: 0 auto 20px;">
                 <div class="header-left">
                     <div class="limit-container">
                         <span class="limit-label">全体条件</span>
@@ -69,7 +58,7 @@
                     </div>
                 </div>
                 <div class="header-right">
-                    <div style="color:var(--border-gold); font-weight:bold; font-size:1.4rem; letter-spacing: 2px;">数値計算シミュレーター</div>
+                    <div style="color:var(--border-gold); font-weight:bold; font-size:1.4rem;">数値計算シミュレーター</div>
                 </div>
             </div>
 
@@ -85,31 +74,7 @@
                 <div id="enemy-grid" class="formation-grid"></div>
             </div>
 
-            <div class="traits-section">
-                <h3 style="color:var(--border-gold); font-size:1rem; border-left: 4px solid var(--border-gold); padding-left: 10px;">武将固有特性入力</h3>
-                <div id="traits-inputs" class="traits-grid">
-                    <p style="color:#666; font-size:0.8rem;">武将を選択すると特性入力が表示されます</p>
-                </div>
-            </div>
-
-            <button class="ctrl-btn calc-btn" onclick="calculateAll()">計算実行・反映</button>
-
-            <div class="result-section">
-                <div class="result-group">
-                    <div class="group-toggle" onclick="toggleAccordion('player-res')">
-                        <span style="color: #6299FF; font-weight: bold;">▼ 自軍バフ詳細</span>
-                        <span id="p-res-summary">---</span>
-                    </div>
-                    <div id="player-res" class="result-content"></div>
-                </div>
-                <div class="result-group">
-                    <div class="group-toggle" onclick="toggleAccordion('enemy-res')">
-                        <span style="color: #ff4d4d; font-weight: bold;">▼ 敵軍デバフ詳細</span>
-                        <span id="e-res-summary">---</span>
-                    </div>
-                    <div id="enemy-res" class="result-content"></div>
-                </div>
-            </div>
+            <button class="ctrl-btn calc-btn" onclick="calculateAll()">全部隊の計算実行</button>
         </div>
     </div>
 
