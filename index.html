@@ -15,7 +15,6 @@
         .limit-select { background: #000; color: #fff; border: none; padding: 0 10px; cursor: pointer; outline: none; }
         .calc-btn { background: linear-gradient(to bottom, #d48806, #a06600); color: white; padding: 0 25px; height: 36px; font-size: 0.9rem; border: 1px solid var(--gold); border-radius: 4px; cursor: pointer; font-weight: bold; margin-left: 10px; }
 
-        /* 味方・敵 タイトルボックス */
         .side-title { width: 100%; padding: 8px 0; text-align: center; font-weight: bold; font-size: 1.2rem; margin-bottom: 10px; border-radius: 4px; }
         .side-player { background-color: var(--blue); color: white; }
         .side-enemy { background-color: var(--red); color: white; margin-top: 20px; }
@@ -35,14 +34,19 @@
         .syu-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.6rem; color: #999; }
         .syu-row input { width: 32px; background: #000; border: 1px solid var(--gold); color: white; text-align: center; }
 
+        /* バフデバフ計算結果枠 */
+        .result-box { border: 1px solid var(--gold); margin-top: 5px; background: #080808; }
+        .res-header { background: #333; color: var(--gold); font-size: 0.7rem; padding: 5px; text-align: center; font-weight: bold; cursor: pointer; }
+        .res-content { padding: 5px; font-size: 0.65rem; color: #ddd; display: none; line-height: 1.4; }
+        .res-content.active { display: block; }
+        .res-line { display: flex; justify-content: space-between; border-bottom: 1px solid #222; padding: 1px 0; }
+        .res-val { color: #fff; font-weight: bold; }
+
         .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); }
         .tab-btn { flex: 1; padding: 10px; background: #333; color: #fff; border: 1px solid #555; cursor: pointer; }
         .tab-btn.active { background: var(--gold); color: #000; font-weight: bold; }
-        
-        /* 画像選択グリッド */
         .image-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 10px; }
         .image-item { width: 100%; aspect-ratio: 1; object-fit: cover; border: 2px solid #444; cursor: pointer; }
-        .image-item:hover { border-color: var(--gold); }
     </style>
 </head>
 <body>
@@ -54,6 +58,9 @@
                     <select id="global-limit" class="limit-select">
                         <option value="none">選択なし</option>
                         <option value="subjugation">同盟討伐戦</option>
+                        <option value="subjugation_castle">同盟討伐戦(城攻め)</option>
+                        <option value="hero">英雄台頭戦</option>
+                        <option value="chain">連撃戦線</option>
                     </select>
                 </div>
                 <button id="main-calc-btn" class="calc-btn">計算を実行</button>
