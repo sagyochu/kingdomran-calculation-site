@@ -19,7 +19,6 @@ const trainingItems = [
     { id: "ex", label: "EX6" }
 ];
 
-// 所属マップ (提供されたデータを整理)
 const belongsMap = {
     "フィゴ族": ["ダント", "パム"],
     "メラ族": ["カタリ", "キタリ"],
@@ -39,7 +38,6 @@ const belongsMap = {
     "王騎軍": ["王騎", "騰", "録嗚未", "鱗坊", "同金", "干央", "隆国"],
     "秦の六大将軍": ["王騎", "白起", "王齕", "司馬錯", "胡傷", "摎"],
     "紀彗軍": ["紀彗", "馬呈", "劉冬", "紀昌", "青公"],
-    "羌族": ["羌瘣", "羌象", "羌明"],
     "飛信隊": ["信", "河了貂", "尾平", "尾到", "澤圭", "羌瘣", "渕", "楚水", "田有", "沛浪", "松左", "竜川", "田永", "崇原", "石", "去亥", "魯延", "昂", "慶", "我呂", "中鉄", "竜有", "岳雷", "那貴", "呂敏", "有義"],
     "魏火龍": ["呉慶", "凱孟", "霊凰", "紫伯", "太呂慈"]
 };
@@ -52,25 +50,32 @@ let state = {
 let currentSlotId = "";
 let currentTab = "country";
 
+// 初期化
 $(document).ready(() => {
-    // 起動時に所属情報を注入
+    initApp();
+});
+
+function initApp() {
+    // 1. 所属情報を注入
     if (window.bushosData) {
         window.bushosData.forEach(busho => {
             busho.belongs = [];
             for (const [groupName, members] of Object.entries(belongsMap)) {
-                if (members.includes(busho.name)) {
-                    busho.belongs.push(groupName);
-                }
+                if (members.includes(busho.name)) busho.belongs.push(groupName);
             }
         });
     }
-    
+
+    // 2. グリッドの描画
     renderGrid('player-grid', 'p');
     renderGrid('enemy-grid', 'e');
-});
+}
 
 function renderGrid(containerId, prefix) {
     const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = ""; // 初期化
+
     units.forEach(unit => {
         const col = document.createElement('div');
         col.className = 'unit-column';
@@ -81,7 +86,9 @@ function renderGrid(containerId, prefix) {
             const wrap = document.createElement('div');
             wrap.className = 'slot-wrapper';
             wrap.innerHTML = `
-                <div class="slot" id="${slotId}" onclick="onSlotClick('${slotId}')"><span style="font-size:2rem;color:#444;">+</span></div>
+                <div class="slot" id="${slotId}" onclick="onSlotClick('${slotId}')">
+                    <span class="plus-mark">+</span>
+                </div>
                 <div class="training-settings">
                     ${trainingItems.map(item => `
                         <label class="training-label">
@@ -102,8 +109,10 @@ function renderGrid(containerId, prefix) {
 
         const res = document.createElement('div');
         res.className = 'unit-result-area';
-        res.id = `res-${prefix}-${unit.name}`;
-        res.innerHTML = `<div class="res-toggle" onclick="toggleRes('${prefix}-${unit.name}')">▽ 部隊バフ</div><div class="res-body" id="body-${prefix}-${unit.name}"></div>`;
+        res.innerHTML = `
+            <div class="res-toggle" onclick="toggleRes(this)">▽ 部隊バフ</div>
+            <div class="res-body" id="body-${prefix}-${unit.name}"></div>
+        `;
         col.appendChild(res);
 
         container.appendChild(col);
@@ -111,7 +120,7 @@ function renderGrid(containerId, prefix) {
 }
 
 // ---------------------------------------------------------
-// モーダル・検索・タブ処理
+// イベント
 // ---------------------------------------------------------
 
 function onSlotClick(slotId) {
@@ -139,30 +148,25 @@ function switchTab(tab) {
     $('.tab-btn').removeClass('active');
     if (tab === 'country') {
         $('#btn-tab-country').addClass('active');
-        renderCategoryList('country');
     } else {
         $('#btn-tab-belongs').addClass('active');
-        renderCategoryList('belongs');
     }
+    renderCategoryList(tab);
 }
 
 function renderCategoryList(type) {
     const body = document.getElementById('modal-body');
     body.innerHTML = '';
-    
-    let categories = [];
-    if (type === 'country') {
-        categories = ["秦国", "趙国", "魏国", "楚国", "韓国", "斉国", "燕国", "山の民", "毐国"];
-    } else {
-        categories = Object.keys(belongsMap); // 所属リストから自動生成
-    }
+    const list = (type === 'country') 
+        ? ["秦国", "趙国", "魏国", "楚国", "韓国", "斉国", "燕国", "山の民", "毐国"]
+        : Object.keys(belongsMap);
 
-    categories.forEach(cat => {
+    list.forEach(item => {
         const btn = document.createElement('button');
         btn.className = 'tab-btn';
         btn.style.width = '100%'; btn.style.textAlign = 'left'; btn.style.marginBottom = '5px';
-        btn.innerText = cat;
-        btn.onclick = () => renderBushoList(type, cat);
+        btn.innerText = item;
+        btn.onclick = () => renderBushoList(type, item);
         body.appendChild(btn);
     });
 }
@@ -172,14 +176,11 @@ function renderBushoList(type, value) {
     body.innerHTML = `<button onclick="renderCategoryList('${type}')" style="width:100%;padding:10px;background:#555;color:#fff;margin-bottom:10px;border:none;cursor:pointer;">← 戻る (${value})</button>`;
     
     if (!window.bushosData) return;
-
-    // フィルタリング: 国別の場合は完全一致、所属別の場合は配列内に含まれるか
-    const list = window.bushosData.filter(b => {
-        if (type === 'country') return b.country === value;
-        return b.belongs && b.belongs.includes(value);
+    const filtered = window.bushosData.filter(b => {
+        return (type === 'country') ? b.country === value : b.belongs.includes(value);
     });
 
-    list.forEach(b => {
+    filtered.forEach(b => {
         const btn = document.createElement('button');
         btn.className = 'tab-btn';
         btn.style.width = '100%'; btn.style.textAlign = 'left'; btn.style.marginBottom = '2px';
@@ -204,16 +205,18 @@ function onSearchInput() {
     });
 }
 
-// ---------------------------------------------------------
-// 武将選択・宿縁入力・計算処理
-// ---------------------------------------------------------
-
 function selectBusho(busho) {
     const side = currentSlotId.startsWith('p') ? 'player' : 'enemy';
     const parts = currentSlotId.split('-');
     state[side].slots[currentSlotId] = busho;
     
-    document.getElementById(currentSlotId).innerHTML = `<img src="${busho.imgs[0]}">`;
+    const slotEl = document.getElementById(currentSlotId);
+    if (busho.imgs && busho.imgs[0]) {
+        slotEl.innerHTML = `<img src="${busho.imgs[0]}">`;
+    } else {
+        slotEl.innerHTML = `<div style="font-size:0.7rem;color:#fff;">${busho.name}</div>`;
+    }
+
     if (parts[2] === "0") updateExtraInputs(parts[0], parts[1]);
     closePopup();
 }
@@ -236,12 +239,12 @@ function updateExtraInputs(prefix, unitName) {
     target.innerHTML = html;
 }
 
-function v(input) { if(input.value < 0) input.value = 0; }
+function v(el) { if(el.value < 0) el.value = 0; }
 
-function updateS(prefix, unitName, frameId, type, val) {
+function updateS(prefix, unitName, fId, type, val) {
     const side = prefix === 'p' ? 'player' : 'enemy';
     if(!state[side].syukuen[unitName]) state[side].syukuen[unitName] = {1:{}, 2:{}};
-    state[side].syukuen[unitName][frameId][type] = Math.max(0, parseFloat(val) || 0);
+    state[side].syukuen[unitName][fId][type] = Math.max(0, parseFloat(val) || 0);
 }
 
 function updateTraining(prefix, slotId, itemId, val) {
@@ -250,7 +253,7 @@ function updateTraining(prefix, slotId, itemId, val) {
     state[side].training[slotId][itemId] = val;
 }
 
-function toggleRes(id) { $(`#body-${id}`).toggleClass('active'); }
+function toggleRes(btn) { $(btn).next('.res-body').toggleClass('active'); }
 
 function handleMenuSelection(action) {
     const parts = currentSlotId.split('-');
@@ -259,13 +262,15 @@ function handleMenuSelection(action) {
     if (action === 'change-busho') openPopup();
     if (action === 'delete-img') {
         delete state[side].slots[currentSlotId];
-        document.getElementById(currentSlotId).innerHTML = `<span style="font-size:2rem;color:#444;">+</span>`;
-        if(parts[2] === "0") document.getElementById(`extra-${parts[0]}-${parts[1]}`).innerHTML = "";
+        document.getElementById(currentSlotId).innerHTML = `<span class="plus-mark">+</span>`;
+        if(parts[2] === "0") {
+            const extra = document.getElementById(`extra-${parts[0]}-${parts[1]}`);
+            if(extra) extra.innerHTML = "";
+        }
     }
 }
 
-function calculateAll() {
-    const limit = $('#global-limit').val();
-    console.log("計算実行: 条件=" + limit, state);
-    alert("計算を実行しました（詳細はブラウザのコンソールを参照）。");
+function calculateAll() { 
+    console.log("State:", state);
+    alert("計算を実行しました。"); 
 }
