@@ -439,3 +439,79 @@ body {
     font-size: 2rem;
     cursor: pointer;
 }
+/* 部隊ごとの入力・結果エリア */
+.slot-wrapper {
+    margin-bottom: 5px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 5px;
+}
+
+.extra-input-area {
+    background: #1a1a1a;
+    padding: 5px;
+    font-size: 0.7rem;
+}
+
+.trait-input-box {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 3px;
+    border-bottom: 1px dotted #444;
+}
+
+.trait-input-box input {
+    width: 40px;
+    background: #000;
+    border: 1px solid var(--border-gold);
+    color: white;
+}
+
+.syukuen-input-group {
+    background: #222;
+    border: 1px solid #444;
+    padding: 3px;
+    margin-top: 5px;
+}
+
+.syu-title { color: var(--border-gold); font-size: 0.6rem; text-align: center; }
+.syu-row { display: flex; justify-content: space-between; margin-bottom: 2px; align-items: center; }
+.syu-row input { width: 35px; background: #000; border: 1px solid #666; color: white; text-align: center; font-size: 0.7rem; }
+
+/* 結果エリア */
+.unit-result-area {
+    margin-top: 10px;
+    border: 1px solid var(--border-gold);
+    background: #0d0d0d;
+}
+
+.res-toggle {
+    background: #333;
+    color: var(--border-gold);
+    font-size: 0.75rem;
+    padding: 4px;
+    cursor: pointer;
+    text-align: center;
+}
+
+.res-body {
+    display: none;
+    padding: 8px;
+    font-size: 0.75rem;
+}
+
+.res-body.active { display: block; }
+
+.res-item { display: flex; justify-content: space-between; margin-bottom: 2px; }
+.res-item .val { color: #00ff00; font-weight: bold; }
+
+.situation-header {
+    margin-top: 8px;
+    color: #888;
+    font-size: 0.65rem;
+    border-top: 1px solid #333;
+    padding-top: 4px;
+}
+
+.res-item-cond { color: #aaa; font-style: italic; margin-left: 5px; }
+
+/* 既存CSSへの統合: widthを1200px程度に広げると安定します */
